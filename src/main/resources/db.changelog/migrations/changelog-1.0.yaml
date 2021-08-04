@@ -1,0 +1,160 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1628082648828-1
+      author: vvvxdd
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: developer_pk
+                  name: id_developer
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: firstname
+                  type: VARCHAR
+              - column:
+                  constraints:
+                    nullable: false
+                  name: lastname
+                  type: VARCHAR
+              - column:
+                  name: id_team
+                  type: BIGINT
+            tableName: developer
+  - changeSet:
+      id: 1628082648828-2
+      author: vvvxdd
+      changes:
+        - loadData:
+            columns:
+              - column:
+                  header: id_developer
+                  name: id_developer
+                  type: NUMERIC
+              - column:
+                  header: firstname
+                  name: firstname
+                  type: STRING
+              - column:
+                  header: lastname
+                  name: lastname
+                  type: STRING
+              - column:
+                  header: id_team
+                  name: id_team
+                  type: skip
+            commentLineStartsWith: '#'
+            encoding: UTF-8
+            file: data/developer.csv
+            quotchar: '"'
+            separator: ','
+            tableName: developer
+  - changeSet:
+      id: 1628082648828-3
+      author: vvvxdd
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: skill_pk
+                  name: id_skill
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR
+              - column:
+                  name: id_developer
+                  type: BIGINT
+            tableName: skill
+  - changeSet:
+      id: 1628082648828-4
+      author: vvvxdd
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: team_pk
+                  name: id_team
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR
+              - column:
+                  constraints:
+                    nullable: false
+                  name: team_status
+                  type: VARCHAR
+            tableName: team
+  - changeSet:
+      id: 1628082648828-5
+      author: vvvxdd
+      changes:
+        - loadData:
+            columns:
+              - column:
+                  header: id_team
+                  name: id_team
+                  type: NUMERIC
+              - column:
+                  header: name
+                  name: name
+                  type: STRING
+              - column:
+                  header: team_status
+                  name: team_status
+                  type: STRING
+            commentLineStartsWith: '#'
+            encoding: UTF-8
+            file: data/team.csv
+            quotchar: '"'
+            separator: ','
+            tableName: team
+  - changeSet:
+      id: 1628082648828-6
+      author: vvvxdd
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: id_developer
+            baseTableName: skill
+            constraintName: relation_4
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: SET NULL
+            onUpdate: NO ACTION
+            referencedColumnNames: id_developer
+            referencedTableName: developer
+            validate: true
+  - changeSet:
+      id: 1628082648828-7
+      author: vvvxdd
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: id_team
+            baseTableName: developer
+            constraintName: relation_5
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: SET NULL
+            onUpdate: NO ACTION
+            referencedColumnNames: id_team
+            referencedTableName: team
+            validate: true
+
