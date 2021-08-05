@@ -2,7 +2,9 @@ package org.example.DB_CRUD_Java.repository.implementations;
 
 
 import org.example.DB_CRUD_Java.model.Developer;
+import org.example.DB_CRUD_Java.model.Skill;
 import org.example.DB_CRUD_Java.model.Team;
+import org.example.DB_CRUD_Java.model.TeamStatus;
 import org.example.DB_CRUD_Java.repository.DeveloperRepository;
 import org.example.DB_CRUD_Java.util.ConnectUtil;
 
@@ -14,48 +16,56 @@ import java.util.List;
 
 public class DBDeveloperRepositoryImpl implements DeveloperRepository {
     private final DBSkillRepositoryImpl dbSkillRepository = new DBSkillRepositoryImpl();
-    private final String SQLGetAll = "select * from developer";
+    private final String SQLGetAll = "select * from developer d left join skill s on s.id_developer = d.id_developer";
     private final String SQLSave = "INSERT INTO developer (firstname,lastname,id_team) values (?,?,?)";
-    private final String SQLGetById = "select * from developer d where d.id_developer = ?";
     private final String SQLDeleteById = "DELETE FROM developer WHERE id_developer = ?";
     private final String SQLMaxId = "SELECT id_developer FROM developer WHERE id_developer = (SELECT max(id_developer) FROM developer)";
     private final String SQLUpdate = "update developer set firstname = ?, lastname = ?, id_team =? where id_developer = ?";
     private final String SQLDeveloperByTeamId = "select * from developer d where d.id_team = ?";
 
-    public Developer getById(Long id) {
-        Developer developer = new Developer();
-        try (PreparedStatement preparedStatement = ConnectUtil.getPreparedStatement(SQLGetById)) {
-            preparedStatement.setInt(1, Math.toIntExact(id));
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                developer.setId(resultSet.getLong(1));
-                developer.setFirstName(resultSet.getString(2));
-                developer.setLastName(resultSet.getString(3));
-                developer.setSkills(dbSkillRepository.getListSkillsByDeveloperId(developer.getId()));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return developer;
-    }
-
-    public List<Developer> getAll() {
+    private List<Developer> getListFromDB() {
         List<Developer> developerList = new ArrayList<>();
         Developer developer = null;
+        List<Skill> skillList = null;
+        Skill skill = null;
+
         try (PreparedStatement preparedStatement = ConnectUtil.getPreparedStatement(SQLGetAll)) {
             ResultSet resultSet = preparedStatement.executeQuery();
+            int prevDevId = -1;
+            int prevSkillId = -1;
+
             while (resultSet.next()) {
-                developer = new Developer();
-                developer.setId(resultSet.getLong(1));
-                developer.setFirstName(resultSet.getString(2));
-                developer.setLastName(resultSet.getString(3));
-                developer.setSkills(dbSkillRepository.getListSkillsByDeveloperId(developer.getId()));
-                developerList.add(developer);
+                if (resultSet.getInt(1) != prevDevId && resultSet.getInt(1)!= 0) {
+                    prevDevId = resultSet.getInt(1);
+                    skillList = new ArrayList<>();
+                    developer = new Developer();
+                    developer.setId(resultSet.getLong(1));
+                    developer.setFirstName(resultSet.getString(2));
+                    developer.setLastName(resultSet.getString(3));
+                    developer.setSkills(skillList);
+                    developerList.add(developer);
+
+                }
+                if (resultSet.getInt(5) != prevSkillId && resultSet.getInt(5)!= 0) {
+                    prevSkillId = resultSet.getInt(5);
+                    skill = new Skill();
+                    skill.setId(resultSet.getLong(5));
+                    skill.setName(resultSet.getString(6));
+                    skillList.add(skill);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return developerList;
+    }
+
+    public Developer getById(Long id) {
+      return getListFromDB().stream().filter(s->s.getId().equals(id)).findFirst().orElse(null);
+    }
+
+    public List<Developer> getAll() {
+        return getListFromDB();
     }
 
     public Developer update(Developer s,Long team) {
